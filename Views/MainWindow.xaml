@@ -1,0 +1,199 @@
+<Window x:Class="KafkaUI.Views.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="clr-namespace:KafkaUI.ViewModels"
+        xmlns:views="clr-namespace:KafkaUI.Views"
+        xmlns:local="clr-namespace:KafkaUI"
+        Title="Kafka UI" Height="800" Width="1280"
+        MinHeight="600" MinWidth="960"
+        Background="#0F1117"
+        WindowStyle="SingleBorderWindow"
+        FontFamily="Segoe UI">
+
+    <Window.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="/Themes/DarkTheme.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
+            <DataTemplate DataType="{x:Type vm:DashboardViewModel}">
+                <views:DashboardView/>
+            </DataTemplate>
+            <DataTemplate DataType="{x:Type vm:BrokersViewModel}">
+                <views:BrokersView/>
+            </DataTemplate>
+            <DataTemplate DataType="{x:Type vm:TopicsViewModel}">
+                <views:TopicsView/>
+            </DataTemplate>
+            <DataTemplate DataType="{x:Type vm:ConsumersViewModel}">
+                <views:ConsumersView/>
+            </DataTemplate>
+            <DataTemplate DataType="{x:Type vm:SchemaRegistryViewModel}">
+                <views:SchemaRegistryView/>
+            </DataTemplate>
+            <DataTemplate DataType="{x:Type vm:KafkaConnectViewModel}">
+                <views:KafkaConnectView/>
+            </DataTemplate>
+        </ResourceDictionary>
+    </Window.Resources>
+
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="240"/>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+
+        <!-- Sidebar -->
+        <Border Grid.Column="0" Background="#1A1D27" BorderBrush="#2D3148" BorderThickness="0,0,1,0">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+
+                <!-- Logo -->
+                <Border Grid.Row="0" Padding="16,20,16,16" BorderBrush="#2D3148" BorderThickness="0,0,0,1">
+                    <StackPanel Orientation="Horizontal">
+                        <Border Background="#4F6EF7" CornerRadius="6" Width="32" Height="32">
+                            <TextBlock Text="K" Foreground="White" FontSize="18" FontWeight="Bold"
+                                       HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <StackPanel Margin="10,0,0,0" VerticalAlignment="Center">
+                            <TextBlock Text="Kafka UI" Foreground="#E8EAF6" FontSize="15" FontWeight="SemiBold"/>
+                            <TextBlock Text="Cluster Manager" Foreground="#8B93C4" FontSize="11"/>
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+
+                <!-- Clusters Section -->
+                <Grid Grid.Row="1" Margin="0,8,0,0">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+                    <Grid Grid.Row="0" Margin="12,4,12,4">
+                        <TextBlock Text="CLUSTERS" Foreground="#4A5180" FontSize="10" FontWeight="Bold"
+                                   VerticalAlignment="Center"/>
+                        <Button HorizontalAlignment="Right" Command="{Binding ViewClustersCommand}"
+                                Style="{StaticResource PrimaryButton}" Padding="8,4" FontSize="12">
+                            <TextBlock Text="View"/>
+                        </Button>
+                    </Grid>
+                    <ListBox Grid.Row="1" ItemsSource="{Binding Clusters}"
+                             SelectedItem="{Binding SelectedCluster}"
+                             Background="Transparent" BorderThickness="0"
+                             Margin="4,0" ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                        <ListBox.ItemContainerStyle>
+                            <Style TargetType="ListBoxItem" BasedOn="{StaticResource SidebarItem}">
+                                <Setter Property="ToolTip" Value="{Binding BootstrapServers}"/>
+                            </Style>
+                        </ListBox.ItemContainerStyle>
+                        <ListBox.ItemTemplate>
+                            <DataTemplate>
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <Ellipse Grid.Column="0" Width="8" Height="8" Margin="0,0,8,0" VerticalAlignment="Center">
+                                        <Ellipse.Fill>
+                                            <SolidColorBrush Color="#2DD4A5"/>
+                                        </Ellipse.Fill>
+                                    </Ellipse>
+                                    <TextBlock Grid.Column="1" Text="{Binding Name}" 
+                                               TextTrimming="CharacterEllipsis" VerticalAlignment="Center"/>
+                                    <TextBlock Grid.Column="2" Text="{Binding BrokerCount}" 
+                                               Foreground="#4A5180" FontSize="11" VerticalAlignment="Center"
+                                               Margin="4,0,0,0"/>
+                                </Grid>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+                </Grid>
+
+                <!-- Navigation -->
+                <StackPanel Grid.Row="2" Margin="4,8,4,0">
+                    <TextBlock Text="NAVIGATION" Foreground="#4A5180" FontSize="10" FontWeight="Bold"
+                               Margin="12,8,0,4"/>
+                    <Button Style="{StaticResource SecondaryButton}" Command="{Binding ShowDashboardCommand}"
+                            HorizontalContentAlignment="Left" Margin="0,2" Padding="12,8">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="⬛" FontSize="14" Margin="0,0,8,0"/>
+                            <TextBlock Text="Dashboard"/>
+                        </StackPanel>
+                    </Button>
+                    <Button Style="{StaticResource SecondaryButton}" Command="{Binding ShowBrokersCommand}"
+                            HorizontalContentAlignment="Left" Margin="0,2" Padding="12,8">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="🖥" FontSize="14" Margin="0,0,8,0"/>
+                            <TextBlock Text="Brokers"/>
+                        </StackPanel>
+                    </Button>
+                    <Button Style="{StaticResource SecondaryButton}" Command="{Binding ShowTopicsCommand}"
+                            HorizontalContentAlignment="Left" Margin="0,2" Padding="12,8">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="📋" FontSize="14" Margin="0,0,8,0"/>
+                            <TextBlock Text="Topics"/>
+                        </StackPanel>
+                    </Button>
+                    <Button Style="{StaticResource SecondaryButton}" Command="{Binding ShowConsumersCommand}"
+                            HorizontalContentAlignment="Left" Margin="0,2" Padding="12,8">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="👥" FontSize="14" Margin="0,0,8,0"/>
+                            <TextBlock Text="Consumers"/>
+                        </StackPanel>
+                    </Button>
+                    <Button Style="{StaticResource SecondaryButton}" Command="{Binding ShowSchemaRegistryCommand}"
+                            HorizontalContentAlignment="Left" Margin="0,2" Padding="12,8">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="📄" FontSize="14" Margin="0,0,8,0"/>
+                            <TextBlock Text="Schema Registry"/>
+                        </StackPanel>
+                    </Button>
+                    <Button Style="{StaticResource SecondaryButton}" Command="{Binding ShowKafkaConnectCommand}"
+                            HorizontalContentAlignment="Left" Margin="0,2" Padding="12,8">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="🔗" FontSize="14" Margin="0,0,8,0"/>
+                            <TextBlock Text="Kafka Connect"/>
+                        </StackPanel>
+                    </Button>
+                </StackPanel>
+
+                <!-- Status bar -->
+                <Border Grid.Row="3" Padding="12,10" BorderBrush="#2D3148" BorderThickness="0,1,0,0">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Text="{Binding StatusMessage}" Foreground="#8B93C4" FontSize="11"
+                                   TextTrimming="CharacterEllipsis" VerticalAlignment="Center"/>
+                        <ProgressBar Grid.Column="1" Width="60" Height="4" IsIndeterminate="True"
+                                     Visibility="{Binding IsBusy, Converter={x:Static local:BoolToVisibilityConverter.Instance}}"
+                                     Foreground="#4F6EF7" Background="#2D3148"/>
+                    </Grid>
+                </Border>
+            </Grid>
+        </Border>
+
+        <!-- Main Content -->
+        <Grid Grid.Column="1">
+            <!-- Empty State -->
+            <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center"
+                        Visibility="{Binding CurrentContent, Converter={x:Static local:NullToVisibilityConverter.Instance}}">
+                <Border Background="#22263A" CornerRadius="12" Width="64" Height="64" HorizontalAlignment="Center" Margin="0,0,0,16">
+                    <TextBlock Text="⬛" FontSize="32" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                </Border>
+                <TextBlock Text="Select a cluster to get started" Foreground="#8B93C4" FontSize="15" HorizontalAlignment="Center"/>
+                <TextBlock Text="Add a new cluster from the sidebar or select an existing one" 
+                           Foreground="#4A5180" FontSize="13" HorizontalAlignment="Center" Margin="0,8,0,0"/>
+            </StackPanel>
+
+            <!-- Content -->
+            <ContentControl Content="{Binding CurrentContent}"
+                            Visibility="{Binding CurrentContent, Converter={x:Static local:NotNullToVisibilityConverter.Instance}}"/>
+        </Grid>
+    </Grid>
+</Window>

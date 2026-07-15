@@ -1,0 +1,26 @@
+<UserControl x:Class="KafkaUI.Views.KafkaConnectView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:local="clr-namespace:KafkaUI">
+    <UserControl.Resources>
+        <ResourceDictionary Source="/Themes/DarkTheme.xaml"/>
+    </UserControl.Resources>
+    <Grid Background="#0F1117" Margin="24">
+        <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center"
+                    Visibility="{Binding IsConfigured, Converter={x:Static local:InverseBoolToVisibilityConverter.Instance}}">
+            <Border Background="#22263A" CornerRadius="12" Width="64" Height="64" HorizontalAlignment="Center" Margin="0,0,0,16">
+                <TextBlock Text="🔗" FontSize="32" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+            </Border>
+            <TextBlock Text="Kafka Connect not configured" Foreground="#8B93C4" FontSize="16" HorizontalAlignment="Center"/>
+            <TextBlock Text="Add a Kafka Connect URL when adding/editing your cluster"
+                       Foreground="#4A5180" FontSize="13" HorizontalAlignment="Center" Margin="0,8,0,0"/>
+        </StackPanel>
+        <StackPanel Visibility="{Binding IsConfigured, Converter={x:Static local:BoolToVisibilityConverter.Instance}}">
+            <TextBlock Text="Kafka Connect" Foreground="#E8EAF6" FontSize="24" FontWeight="Bold" Margin="0,0,0,8"/>
+            <TextBlock Text="{Binding ConnectUrl}" Foreground="#8B93C4" FontSize="13" Margin="0,0,0,24"/>
+            <Border Style="{StaticResource Card}">
+                <TextBlock Text="Connector management coming soon." Foreground="#4A5180" FontSize="14" HorizontalAlignment="Center" Padding="0,32"/>
+            </Border>
+        </StackPanel>
+    </Grid>
+</UserControl>

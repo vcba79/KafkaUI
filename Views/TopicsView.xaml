@@ -1,0 +1,255 @@
+<UserControl x:Class="KafkaUI.Views.TopicsView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="clr-namespace:KafkaUI.ViewModels"
+             xmlns:views="clr-namespace:KafkaUI.Views"
+             xmlns:local="clr-namespace:KafkaUI"
+             xmlns:models="clr-namespace:KafkaUI.Models">
+    <UserControl.Resources>
+        <ResourceDictionary Source="/Themes/DarkTheme.xaml"/>
+    </UserControl.Resources>
+
+    <Grid Background="{StaticResource Background}">
+
+        <!-- Topic list (hidden when detail is shown) -->
+        <Grid Visibility="{Binding TopicDetail, Converter={x:Static local:NullToVisibilityConverter.Instance}}">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+
+            <!-- Title + Add button -->
+            <Grid Grid.Row="0" Margin="24,24,24,16">
+                <TextBlock Text="Topics" FontSize="22" FontWeight="Bold"
+                           Foreground="{StaticResource TextPrimary}" VerticalAlignment="Center"/>
+                <Button HorizontalAlignment="Right" Style="{StaticResource PrimaryButton}"
+                        Command="{Binding CreateTopicCommand}">
+                    <TextBlock Text="+ Add a Topic"/>
+                </Button>
+            </Grid>
+
+            <!-- Search + Show Internal Topics toggle -->
+            <Grid Grid.Row="1" Margin="24,0,24,12">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="320"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+
+                <TextBox Grid.Column="0"
+                         Style="{StaticResource DarkTextBox}"
+                         Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"
+                         Tag="Search by Topic Name"/>
+
+                <!-- Toggle pill -->
+                <StackPanel Grid.Column="1" Orientation="Horizontal"
+                            VerticalAlignment="Center" Margin="16,0,0,0">
+                    <CheckBox IsChecked="{Binding ShowInternal}" VerticalAlignment="Center">
+                        <CheckBox.Template>
+                            <ControlTemplate TargetType="CheckBox">
+                                <Border Width="42" Height="22" CornerRadius="11"
+                                        x:Name="Pill" Background="{StaticResource Border}"
+                                        VerticalAlignment="Center" Cursor="Hand">
+                                    <Border x:Name="Thumb" Width="16" Height="16" CornerRadius="8"
+                                            Background="{StaticResource TextSecondary}"
+                                            HorizontalAlignment="Left" Margin="3,0"/>
+                                </Border>
+                                <ControlTemplate.Triggers>
+                                    <Trigger Property="IsChecked" Value="True">
+                                        <Setter TargetName="Pill" Property="Background" Value="{StaticResource Accent}"/>
+                                        <Setter TargetName="Thumb" Property="HorizontalAlignment" Value="Right"/>
+                                        <Setter TargetName="Thumb" Property="Background" Value="White"/>
+                                    </Trigger>
+                                </ControlTemplate.Triggers>
+                            </ControlTemplate>
+                        </CheckBox.Template>
+                    </CheckBox>
+                    <TextBlock Text="Show Internal Topics" Foreground="{StaticResource TextPrimary}"
+                               FontSize="13" VerticalAlignment="Center" Margin="8,0,0,0"/>
+                </StackPanel>
+            </Grid>
+
+            <!-- Action buttons -->
+            <StackPanel Grid.Row="2" Orientation="Horizontal" Margin="24,0,24,12">
+                <Button Style="{StaticResource SecondaryButton}" Command="{Binding DeleteSelectedCommand}"
+                        Margin="0,0,8,0" Padding="12,6">
+                    <TextBlock Text="Delete selected topics" FontSize="12"/>
+                </Button>
+                <Button Style="{StaticResource SecondaryButton}" Command="{Binding CopySelectedCommand}"
+                        Margin="0,0,8,0" Padding="12,6">
+                    <TextBlock Text="Copy selected topic" FontSize="12"/>
+                </Button>
+                <Button Style="{StaticResource SecondaryButton}" Command="{Binding PurgeSelectedCommand}"
+                        Padding="12,6">
+                    <TextBlock Text="Purge messages of selected topics" FontSize="12"/>
+                </Button>
+            </StackPanel>
+
+            <!-- Topics table -->
+            <Border Grid.Row="3" Margin="24,0,24,24" Style="{StaticResource Card}" Padding="0">
+                <DataGrid x:Name="TopicsGrid"
+                          Style="{StaticResource DarkDataGrid}"
+                          ItemsSource="{Binding FilteredTopics}"
+                          SelectedItem="{Binding SelectedTopic}"
+                          CanUserResizeRows="False"
+                          LoadingRow="TopicsGrid_LoadingRow">
+                    <DataGrid.Columns>
+
+                        <!-- Checkbox: DataGridCheckBoxColumn prevents row-navigation on click -->
+                        <DataGridCheckBoxColumn x:Name="CheckboxColumn"
+                                                Binding="{Binding IsChecked, UpdateSourceTrigger=PropertyChanged}"
+                                                Width="48" CanUserResize="False" CanUserSort="False">
+                            <DataGridCheckBoxColumn.HeaderTemplate>
+                                <DataTemplate>
+                                    <CheckBox HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                </DataTemplate>
+                            </DataGridCheckBoxColumn.HeaderTemplate>
+                        </DataGridCheckBoxColumn>
+
+                        <!-- Topic Name — shows IN badge when IsInternal -->
+                        <DataGridTemplateColumn Header="Topic Name" Width="*" MinWidth="160">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="12,0">
+                                        <Border Visibility="{Binding IsInternal, Converter={x:Static local:BoolToVisibilityConverter.Instance}}"
+                                                Background="#1A2540"
+                                                BorderBrush="#2D3A5A" BorderThickness="1"
+                                                CornerRadius="3" Padding="5,1" Margin="0,0,7,0">
+                                            <TextBlock Text="IN" FontSize="10" FontWeight="Bold"
+                                                       Foreground="#6B8CCC" VerticalAlignment="Center"/>
+                                        </Border>
+                                        <TextBlock Text="{Binding Name}"
+                                                   Foreground="{StaticResource Accent}"
+                                                   FontSize="13" Cursor="Hand"
+                                                   TextTrimming="CharacterEllipsis"
+                                                   VerticalAlignment="Center"/>
+                                    </StackPanel>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+
+                        <!-- Partitions -->
+                        <DataGridTextColumn Header="Partitions" Binding="{Binding Partitions}" Width="110">
+                            <DataGridTextColumn.ElementStyle>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="Foreground" Value="{StaticResource TextPrimary}"/>
+                                    <Setter Property="VerticalAlignment" Value="Center"/>
+                                    <Setter Property="Margin" Value="12,0"/>
+                                </Style>
+                            </DataGridTextColumn.ElementStyle>
+                        </DataGridTextColumn>
+
+                        <!-- Out of sync replicas -->
+                        <DataGridTextColumn Header="Out of sync replicas"
+                                            Binding="{Binding OutOfSyncReplicas}" Width="160">
+                            <DataGridTextColumn.ElementStyle>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="Foreground" Value="{StaticResource TextPrimary}"/>
+                                    <Setter Property="VerticalAlignment" Value="Center"/>
+                                    <Setter Property="Margin" Value="12,0"/>
+                                </Style>
+                            </DataGridTextColumn.ElementStyle>
+                        </DataGridTextColumn>
+
+                        <!-- Replication Factor -->
+                        <DataGridTemplateColumn Header="Replication Factor" Width="150">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <TextBlock Text="{Binding ReplicationFactor}"
+                                               Foreground="{StaticResource Accent}"
+                                               FontSize="13" VerticalAlignment="Center" Margin="12,0"/>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+
+                        <!-- Number of messages -->
+                        <DataGridTextColumn Header="Number of messages"
+                                            Binding="{Binding MessageCount}" Width="160">
+                            <DataGridTextColumn.ElementStyle>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="Foreground" Value="{StaticResource TextPrimary}"/>
+                                    <Setter Property="VerticalAlignment" Value="Center"/>
+                                    <Setter Property="Margin" Value="12,0"/>
+                                </Style>
+                            </DataGridTextColumn.ElementStyle>
+                        </DataGridTextColumn>
+
+                        <!-- Size -->
+                        <DataGridTextColumn Header="Size" Binding="{Binding SizeFormatted}" Width="90">
+                            <DataGridTextColumn.ElementStyle>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="Foreground" Value="{StaticResource TextPrimary}"/>
+                                    <Setter Property="VerticalAlignment" Value="Center"/>
+                                    <Setter Property="Margin" Value="12,0"/>
+                                </Style>
+                            </DataGridTextColumn.ElementStyle>
+                        </DataGridTextColumn>
+
+                        <!-- ⋮ row menu -->
+                        <DataGridTemplateColumn Width="48" CanUserResize="False" CanUserSort="False">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <Button VerticalAlignment="Center" HorizontalAlignment="Center"
+                                            Cursor="Hand" Padding="6" BorderThickness="0">
+                                        <Button.Style>
+                                            <Style TargetType="Button">
+                                                <Setter Property="Background" Value="Transparent"/>
+                                                <Setter Property="BorderThickness" Value="0"/>
+                                                <Setter Property="Template">
+                                                    <Setter.Value>
+                                                        <ControlTemplate TargetType="Button">
+                                                            <Border Background="{TemplateBinding Background}"
+                                                                    CornerRadius="4" Padding="{TemplateBinding Padding}">
+                                                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                            </Border>
+                                                            <ControlTemplate.Triggers>
+                                                                <Trigger Property="IsMouseOver" Value="True">
+                                                                    <Setter Property="Background" Value="{StaticResource SurfaceElevated}"/>
+                                                                </Trigger>
+                                                            </ControlTemplate.Triggers>
+                                                        </ControlTemplate>
+                                                    </Setter.Value>
+                                                </Setter>
+                                            </Style>
+                                        </Button.Style>
+                                        <Button.ContextMenu>
+                                            <ContextMenu>
+                                                <MenuItem Header="View Messages"/>
+                                                <MenuItem Header="Copy Topic"/>
+                                                <Separator/>
+                                                <MenuItem Header="Delete Topic" Foreground="{StaticResource Danger}"/>
+                                            </ContextMenu>
+                                        </Button.ContextMenu>
+                                        <TextBlock Text="⋮" Foreground="{StaticResource TextSecondary}" FontSize="16"/>
+                                    </Button>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+
+                    </DataGrid.Columns>
+                </DataGrid>
+            </Border>
+        </Grid>
+
+        <!-- Topic Detail -->
+        <ContentControl Content="{Binding TopicDetail}"
+                        Visibility="{Binding TopicDetail, Converter={x:Static local:NotNullToVisibilityConverter.Instance}}">
+            <ContentControl.ContentTemplate>
+                <DataTemplate DataType="{x:Type vm:TopicDetailViewModel}">
+                    <views:TopicDetailView/>
+                </DataTemplate>
+            </ContentControl.ContentTemplate>
+        </ContentControl>
+
+        <!-- Create Topic inline view -->
+        <ContentControl Content="{Binding CreateTopicVM}"
+                        Visibility="{Binding CreateTopicVM, Converter={x:Static local:NotNullToVisibilityConverter.Instance}}">
+            <ContentControl.ContentTemplate>
+                <DataTemplate>
+                    <views:CreateTopicView/>
+                </DataTemplate>
+            </ContentControl.ContentTemplate>
+        </ContentControl>
+    </Grid>
+</UserControl>

@@ -1,0 +1,231 @@
+<UserControl x:Class="KafkaUI.Views.BrokersView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:local="clr-namespace:KafkaUI"
+             xmlns:views="clr-namespace:KafkaUI.Views">
+    <UserControl.Resources>
+        <ResourceDictionary Source="/Themes/DarkTheme.xaml"/>
+    </UserControl.Resources>
+
+    <Grid>
+        <!-- Broker detail overlay -->
+        <ContentControl Content="{Binding BrokerDetail}"
+                        Visibility="{Binding BrokerDetail, Converter={x:Static local:NotNullToVisibilityConverter.Instance}}">
+            <ContentControl.ContentTemplate>
+                <DataTemplate>
+                    <views:BrokerDetailView/>
+                </DataTemplate>
+            </ContentControl.ContentTemplate>
+        </ContentControl>
+
+        <!-- Broker list -->
+        <ScrollViewer Background="{StaticResource Background}" VerticalScrollBarVisibility="Auto"
+                      Visibility="{Binding BrokerDetail, Converter={x:Static local:NullToVisibilityConverter.Instance}}">
+        <StackPanel Margin="24,24,24,24">
+
+            <!-- Title -->
+            <TextBlock Text="Brokers" FontSize="22" FontWeight="Bold"
+                       Foreground="{StaticResource TextPrimary}" Margin="0,0,0,16"/>
+
+            <!-- ── Summary: Uptime label above its cards, Partitions label above its cards ── -->
+            <Border Background="{StaticResource Surface}"
+                    BorderBrush="{StaticResource Border}" BorderThickness="1"
+                    CornerRadius="6" Margin="0,0,0,20" Padding="20,16">
+                <StackPanel Orientation="Horizontal">
+
+                    <!-- UPTIME group -->
+                    <StackPanel Margin="0,0,32,0">
+                        <TextBlock Text="Uptime" Foreground="{StaticResource TextPrimary}"
+                                   FontSize="14" FontWeight="SemiBold" Margin="0,0,0,10"/>
+                        <Border Background="{StaticResource SurfaceElevated}"
+                                BorderBrush="{StaticResource Border}" BorderThickness="1"
+                                CornerRadius="6">
+                            <StackPanel Orientation="Horizontal">
+
+                                <!-- Broker Count -->
+                                <StackPanel Margin="16,12">
+                                    <TextBlock Text="Broker Count" Foreground="{StaticResource TextSecondary}" FontSize="12"/>
+                                    <TextBlock Text="{Binding BrokerCount}" Foreground="{StaticResource TextPrimary}"
+                                               FontSize="18" FontWeight="Bold" Margin="0,4,0,0"/>
+                                </StackPanel>
+                                <Rectangle Width="1" Fill="{StaticResource Border}" Margin="0,8"/>
+
+                                <!-- Active Controller -->
+                                <StackPanel Margin="16,12">
+                                    <TextBlock Text="Active Controller" Foreground="{StaticResource TextSecondary}" FontSize="12"/>
+                                    <TextBlock Text="{Binding ActiveControllerDisplay}" Foreground="{StaticResource TextPrimary}"
+                                               FontSize="18" FontWeight="Bold" Margin="0,4,0,0"/>
+                                </StackPanel>
+                                <Rectangle Width="1" Fill="{StaticResource Border}" Margin="0,8"/>
+
+                                <!-- Version -->
+                                <StackPanel Margin="16,12">
+                                    <TextBlock Text="Version" Foreground="{StaticResource TextSecondary}" FontSize="12"/>
+                                    <TextBlock Text="{Binding Version}" Foreground="{StaticResource TextPrimary}"
+                                               FontSize="18" FontWeight="Bold" Margin="0,4,0,0"/>
+                                </StackPanel>
+
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+
+                    <!-- PARTITIONS group -->
+                    <StackPanel>
+                        <TextBlock Text="Partitions" Foreground="{StaticResource TextPrimary}"
+                                   FontSize="14" FontWeight="SemiBold" Margin="0,0,0,10"/>
+                        <Border Background="{StaticResource SurfaceElevated}"
+                                BorderBrush="{StaticResource Border}" BorderThickness="1"
+                                CornerRadius="6">
+                            <StackPanel Orientation="Horizontal">
+
+                                <!-- Online -->
+                                <StackPanel Margin="16,12">
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock Text="Online" Foreground="{StaticResource TextSecondary}" FontSize="12"/>
+                                        <Ellipse Width="7" Height="7" Fill="{StaticResource Success}"
+                                                 VerticalAlignment="Center" Margin="4,0,0,0"/>
+                                    </StackPanel>
+                                    <TextBlock Text="{Binding OnlinePartitionsDisplay}"
+                                               Foreground="{StaticResource Success}"
+                                               FontSize="16" FontWeight="Bold" Margin="0,4,0,0"/>
+                                </StackPanel>
+                                <Rectangle Width="1" Fill="{StaticResource Border}" Margin="0,8"/>
+
+                                <!-- URP -->
+                                <StackPanel Margin="16,12">
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock Text="URP" Foreground="{StaticResource TextSecondary}" FontSize="12"/>
+                                        <Ellipse Width="7" Height="7" Fill="{StaticResource Success}"
+                                                 VerticalAlignment="Center" Margin="4,0,0,0"/>
+                                    </StackPanel>
+                                    <TextBlock Text="{Binding UnderReplicatedPartitions}"
+                                               Foreground="{StaticResource TextPrimary}"
+                                               FontSize="18" FontWeight="Bold" Margin="0,4,0,0"/>
+                                </StackPanel>
+                                <Rectangle Width="1" Fill="{StaticResource Border}" Margin="0,8"/>
+
+                                <!-- In Sync Replicas -->
+                                <StackPanel Margin="16,12">
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock Text="In Sync Replicas" Foreground="{StaticResource TextSecondary}" FontSize="12"/>
+                                        <Ellipse Width="7" Height="7" Fill="{StaticResource Success}"
+                                                 VerticalAlignment="Center" Margin="4,0,0,0"/>
+                                    </StackPanel>
+                                    <TextBlock Text="{Binding InSyncReplicasDisplay}"
+                                               Foreground="{StaticResource Success}"
+                                               FontSize="16" FontWeight="Bold" Margin="0,4,0,0"/>
+                                </StackPanel>
+                                <Rectangle Width="1" Fill="{StaticResource Border}" Margin="0,8"/>
+
+                                <!-- Out Of Sync Replicas -->
+                                <StackPanel Margin="16,12">
+                                    <TextBlock Text="Out Of Sync Replicas" Foreground="{StaticResource TextSecondary}" FontSize="12"/>
+                                    <TextBlock Text="{Binding OutOfSyncReplicas}" Foreground="{StaticResource TextPrimary}"
+                                               FontSize="18" FontWeight="Bold" Margin="0,4,0,0"/>
+                                </StackPanel>
+
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+
+                </StackPanel>
+            </Border>
+
+            <!-- ── Brokers table ── -->
+            <Border Style="{StaticResource Card}" Padding="0">
+                <DataGrid Style="{StaticResource DarkDataGrid}"
+                          ItemsSource="{Binding Brokers}"
+                          SelectedItem="{Binding SelectedBroker}"
+                          IsReadOnly="True" CanUserResizeRows="False">
+                    <DataGrid.Columns>
+
+                        <DataGridTextColumn Header="Broker ID" Binding="{Binding Id}" Width="120">
+                            <DataGridTextColumn.ElementStyle>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="Foreground" Value="{StaticResource TextPrimary}"/>
+                                    <Setter Property="VerticalAlignment" Value="Center"/>
+                                    <Setter Property="Margin" Value="12,0"/>
+                                </Style>
+                            </DataGridTextColumn.ElementStyle>
+                        </DataGridTextColumn>
+
+                        <DataGridTextColumn Header="Disk usage" Binding="{Binding DiskUsageFormatted}" Width="130">
+                            <DataGridTextColumn.ElementStyle>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="Foreground" Value="{StaticResource TextPrimary}"/>
+                                    <Setter Property="VerticalAlignment" Value="Center"/>
+                                    <Setter Property="Margin" Value="12,0"/>
+                                </Style>
+                            </DataGridTextColumn.ElementStyle>
+                        </DataGridTextColumn>
+
+                        <DataGridTextColumn Header="Partitions skew"
+                                            Binding="{Binding PartitionsSkew, TargetNullValue='-'}" Width="140">
+                            <DataGridTextColumn.ElementStyle>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="Foreground" Value="{StaticResource TextSecondary}"/>
+                                    <Setter Property="VerticalAlignment" Value="Center"/>
+                                    <Setter Property="Margin" Value="12,0"/>
+                                </Style>
+                            </DataGridTextColumn.ElementStyle>
+                        </DataGridTextColumn>
+
+                        <DataGridTextColumn Header="Leaders" Binding="{Binding LeaderCount}" Width="100">
+                            <DataGridTextColumn.ElementStyle>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="Foreground" Value="{StaticResource TextPrimary}"/>
+                                    <Setter Property="VerticalAlignment" Value="Center"/>
+                                    <Setter Property="Margin" Value="12,0"/>
+                                </Style>
+                            </DataGridTextColumn.ElementStyle>
+                        </DataGridTextColumn>
+
+                        <DataGridTextColumn Header="Leader skew"
+                                            Binding="{Binding LeaderSkew, TargetNullValue='-'}" Width="120">
+                            <DataGridTextColumn.ElementStyle>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="Foreground" Value="{StaticResource TextSecondary}"/>
+                                    <Setter Property="VerticalAlignment" Value="Center"/>
+                                    <Setter Property="Margin" Value="12,0"/>
+                                </Style>
+                            </DataGridTextColumn.ElementStyle>
+                        </DataGridTextColumn>
+
+                        <DataGridTextColumn Header="Online partitions" Binding="{Binding OnlinePartitions}" Width="150">
+                            <DataGridTextColumn.ElementStyle>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="Foreground" Value="{StaticResource Success}"/>
+                                    <Setter Property="VerticalAlignment" Value="Center"/>
+                                    <Setter Property="Margin" Value="12,0"/>
+                                </Style>
+                            </DataGridTextColumn.ElementStyle>
+                        </DataGridTextColumn>
+
+                        <DataGridTextColumn Header="Port" Binding="{Binding Port}" Width="80">
+                            <DataGridTextColumn.ElementStyle>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="Foreground" Value="{StaticResource TextPrimary}"/>
+                                    <Setter Property="VerticalAlignment" Value="Center"/>
+                                    <Setter Property="Margin" Value="12,0"/>
+                                </Style>
+                            </DataGridTextColumn.ElementStyle>
+                        </DataGridTextColumn>
+
+                        <DataGridTextColumn Header="Host" Binding="{Binding Host}" Width="*">
+                            <DataGridTextColumn.ElementStyle>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="Foreground" Value="{StaticResource TextPrimary}"/>
+                                    <Setter Property="VerticalAlignment" Value="Center"/>
+                                    <Setter Property="Margin" Value="12,0"/>
+                                </Style>
+                            </DataGridTextColumn.ElementStyle>
+                        </DataGridTextColumn>
+
+                    </DataGrid.Columns>
+                </DataGrid>
+            </Border>
+
+        </StackPanel>
+        </ScrollViewer>
+    </Grid>
+</UserControl>

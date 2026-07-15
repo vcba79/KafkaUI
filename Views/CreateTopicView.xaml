@@ -1,0 +1,221 @@
+<UserControl x:Class="KafkaUI.Views.CreateTopicView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:local="clr-namespace:KafkaUI">
+    <UserControl.Resources>
+        <ResourceDictionary Source="/Themes/DarkTheme.xaml"/>
+    </UserControl.Resources>
+
+    <ScrollViewer VerticalScrollBarVisibility="Auto" Background="{StaticResource Background}">
+        <StackPanel Margin="24,24,24,40" MaxWidth="640" HorizontalAlignment="Left">
+
+            <!-- Breadcrumb -->
+            <StackPanel Orientation="Horizontal" Margin="0,0,0,24">
+                <Button Background="Transparent" BorderThickness="0" Cursor="Hand"
+                        Command="{Binding CancelCommand}" Padding="0">
+                    <TextBlock Text="Topics" Foreground="{StaticResource Accent}"
+                               FontSize="15" FontWeight="SemiBold"/>
+                </Button>
+                <TextBlock Text=" / " Foreground="{StaticResource TextSecondary}"
+                           FontSize="15" VerticalAlignment="Center" Margin="4,0"/>
+                <TextBlock Text="Create" Foreground="{StaticResource TextPrimary}"
+                           FontSize="15" FontWeight="SemiBold" VerticalAlignment="Center"/>
+            </StackPanel>
+
+            <!-- Topic Name -->
+            <TextBlock Margin="0,0,0,6">
+                <Run Text="Topic Name " Foreground="{StaticResource TextPrimary}" FontSize="13"/>
+                <Run Text="*" Foreground="{StaticResource Danger}" FontSize="13"/>
+            </TextBlock>
+            <TextBox Style="{StaticResource DarkTextBox}"
+                     Text="{Binding Name, UpdateSourceTrigger=PropertyChanged}"
+                     Tag="Topic Name" Margin="0,0,0,20"/>
+
+            <!-- Number of Partitions + Cleanup Policy -->
+            <Grid Margin="0,0,0,20">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="170"/>
+                    <ColumnDefinition Width="16"/>
+                    <ColumnDefinition Width="200"/>
+                </Grid.ColumnDefinitions>
+                <StackPanel Grid.Column="0">
+                    <TextBlock Margin="0,0,0,6">
+                        <Run Text="Number of Partitions " Foreground="{StaticResource TextPrimary}" FontSize="13"/>
+                        <Run Text="*" Foreground="{StaticResource Danger}" FontSize="13"/>
+                    </TextBlock>
+                    <TextBox Style="{StaticResource DarkTextBox}"
+                             Text="{Binding Partitions, UpdateSourceTrigger=PropertyChanged}"
+                             Tag="Number of Partitions"/>
+                </StackPanel>
+                <StackPanel Grid.Column="2">
+                    <TextBlock Text="Cleanup policy" Foreground="{StaticResource TextPrimary}"
+                               FontSize="13" Margin="0,0,0,6"/>
+                    <ComboBox ItemsSource="{Binding CleanupPolicies}"
+                              SelectedItem="{Binding CleanupPolicy}"
+                              Style="{StaticResource DarkComboBox}"/>
+                </StackPanel>
+            </Grid>
+
+            <!-- Min In Sync Replicas + Replication Factor -->
+            <Grid Margin="0,0,0,20">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="170"/>
+                    <ColumnDefinition Width="16"/>
+                    <ColumnDefinition Width="170"/>
+                </Grid.ColumnDefinitions>
+                <StackPanel Grid.Column="0">
+                    <TextBlock Text="Min In Sync Replicas" Foreground="{StaticResource TextPrimary}"
+                               FontSize="13" Margin="0,0,0,6"/>
+                    <TextBox Style="{StaticResource DarkTextBox}"
+                             Text="{Binding MinInSyncReplicas, UpdateSourceTrigger=PropertyChanged}"
+                             Tag="Min In Sync Replicas"/>
+                </StackPanel>
+                <StackPanel Grid.Column="2">
+                    <TextBlock Text="Replication Factor" Foreground="{StaticResource TextPrimary}"
+                               FontSize="13" Margin="0,0,0,6"/>
+                    <TextBox Style="{StaticResource DarkTextBox}"
+                             Text="{Binding ReplicationFactor, UpdateSourceTrigger=PropertyChanged}"
+                             Tag="Replication Factor"/>
+                </StackPanel>
+            </Grid>
+
+            <!-- Time to retain data -->
+            <StackPanel Margin="0,0,0,20">
+                <StackPanel Orientation="Horizontal" Margin="0,0,0,6">
+                    <TextBlock Text="Time to retain data (in ms)" Foreground="{StaticResource TextPrimary}" FontSize="13"/>
+                    <TextBlock Text="{Binding RetentionDisplay}"
+                               Foreground="{StaticResource Accent}" FontSize="13" Margin="8,0,0,0"/>
+                </StackPanel>
+                <TextBox Style="{StaticResource DarkTextBox}"
+                         Text="{Binding RetentionMs, UpdateSourceTrigger=PropertyChanged}"
+                         Tag="Time to retain data (in ms)"
+                         Width="200" HorizontalAlignment="Left"
+                         Margin="0,0,0,10"/>
+                <!-- Quick presets -->
+                <StackPanel Orientation="Horizontal">
+                    <Button Style="{StaticResource SecondaryButton}"
+                            Command="{Binding SetRetentionCommand}" CommandParameter="43200000"
+                            Padding="10,5" Margin="0,0,6,0" FontSize="12">
+                        <TextBlock Text="12 hours"/>
+                    </Button>
+                    <Button Style="{StaticResource SecondaryButton}"
+                            Command="{Binding SetRetentionCommand}" CommandParameter="86400000"
+                            Padding="10,5" Margin="0,0,6,0" FontSize="12">
+                        <TextBlock Text="1 day"/>
+                    </Button>
+                    <Button Style="{StaticResource SecondaryButton}"
+                            Command="{Binding SetRetentionCommand}" CommandParameter="172800000"
+                            Padding="10,5" Margin="0,0,6,0" FontSize="12">
+                        <TextBlock Text="2 days"/>
+                    </Button>
+                    <Button Command="{Binding SetRetentionCommand}" CommandParameter="604800000"
+                            Padding="10,5" Margin="0,0,6,0" FontSize="12">
+                        <Button.Style>
+                            <Style TargetType="Button" BasedOn="{StaticResource SecondaryButton}">
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding RetentionMs}" Value="604800000">
+                                        <Setter Property="Background" Value="{StaticResource Accent}"/>
+                                        <Setter Property="Foreground" Value="White"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Button.Style>
+                        <TextBlock Text="7 days"/>
+                    </Button>
+                    <Button Style="{StaticResource SecondaryButton}"
+                            Command="{Binding SetRetentionCommand}" CommandParameter="2419200000"
+                            Padding="10,5" Margin="0,0,0,0" FontSize="12">
+                        <TextBlock Text="4 weeks"/>
+                    </Button>
+                </StackPanel>
+            </StackPanel>
+
+            <!-- Max size on disk + Max message size -->
+            <Grid Margin="0,0,0,28">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="170"/>
+                    <ColumnDefinition Width="16"/>
+                    <ColumnDefinition Width="200"/>
+                </Grid.ColumnDefinitions>
+                <StackPanel Grid.Column="0">
+                    <TextBlock Text="Max size on disk in GB" Foreground="{StaticResource TextPrimary}"
+                               FontSize="13" Margin="0,0,0,6"/>
+                    <ComboBox ItemsSource="{Binding MaxSizeOptions}"
+                              SelectedItem="{Binding MaxSizeOnDisk}"
+                              Style="{StaticResource DarkComboBox}"/>
+                </StackPanel>
+                <StackPanel Grid.Column="2">
+                    <TextBlock Text="Maximum message size in bytes" Foreground="{StaticResource TextPrimary}"
+                               FontSize="13" Margin="0,0,0,6"/>
+                    <TextBox Style="{StaticResource DarkTextBox}"
+                             Text="{Binding MaxMessageBytes, UpdateSourceTrigger=PropertyChanged}"
+                             Tag="Maximum message size"/>
+                </StackPanel>
+            </Grid>
+
+            <!-- Custom parameters -->
+            <TextBlock Text="Custom parameters" Foreground="{StaticResource TextPrimary}"
+                       FontSize="14" FontWeight="SemiBold" Margin="0,0,0,12"/>
+
+            <!-- Custom param rows -->
+            <ItemsControl ItemsSource="{Binding CustomParameters}" Margin="0,0,0,10">
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <Grid Margin="0,0,0,8">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="12"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="32"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBox Grid.Column="0" Style="{StaticResource DarkTextBox}"
+                                     Text="{Binding Key, UpdateSourceTrigger=PropertyChanged}"
+                                     Tag="Key"/>
+                            <TextBox Grid.Column="2" Style="{StaticResource DarkTextBox}"
+                                     Text="{Binding Value, UpdateSourceTrigger=PropertyChanged}"
+                                     Tag="Value"/>
+                            <Button Grid.Column="3" Margin="8,0,0,0"
+                                    Background="Transparent" BorderThickness="0" Cursor="Hand"
+                                    Command="{Binding DataContext.RemoveCustomParamCommand,
+                                        RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                    CommandParameter="{Binding}">
+                                <TextBlock Text="✕" Foreground="{StaticResource Danger}" FontSize="14"/>
+                            </Button>
+                        </Grid>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+
+            <Button Style="{StaticResource SecondaryButton}"
+                    Command="{Binding AddCustomParamCommand}"
+                    HorizontalAlignment="Left" Padding="12,7" Margin="0,0,0,28" FontSize="12">
+                <TextBlock Text="+ Add Custom Parameter"/>
+            </Button>
+
+            <!-- Cancel + Create -->
+            <StackPanel Orientation="Horizontal">
+                <Button Style="{StaticResource SecondaryButton}"
+                        Command="{Binding CancelCommand}"
+                        Padding="20,8" Margin="0,0,12,0">
+                    <TextBlock Text="Cancel" FontSize="13"/>
+                </Button>
+                <Button Command="{Binding CreateCommand}"
+                        Padding="20,8">
+                    <Button.Style>
+                        <Style TargetType="Button" BasedOn="{StaticResource SecondaryButton}">
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding CanCreate}" Value="True">
+                                    <Setter Property="Background" Value="{StaticResource Accent}"/>
+                                    <Setter Property="Foreground" Value="White"/>
+                                    <Setter Property="BorderBrush" Value="{StaticResource Accent}"/>
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Button.Style>
+                    <TextBlock Text="Create topic" FontSize="13"/>
+                </Button>
+            </StackPanel>
+
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

@@ -1,0 +1,87 @@
+<Window x:Class="KafkaUI.Views.AddClusterDialog"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:local="clr-namespace:KafkaUI"
+        Title="Add Cluster" Width="480" Height="620"
+        WindowStartupLocation="CenterOwner"
+        ResizeMode="NoResize"
+        Background="#1A1D27"
+        FontFamily="Segoe UI">
+    <Window.Resources>
+        <ResourceDictionary Source="/Themes/DarkTheme.xaml"/>
+    </Window.Resources>
+    <Grid Margin="24">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- Header -->
+        <StackPanel Grid.Row="0" Margin="0,0,0,24">
+            <TextBlock Text="{Binding Title, RelativeSource={RelativeSource AncestorType=Window}}" Foreground="#E8EAF6" FontSize="20" FontWeight="Bold"/>
+            <TextBlock Text="Connect to an Apache Kafka cluster" Foreground="#8B93C4" FontSize="13" Margin="0,4,0,0"/>
+        </StackPanel>
+
+        <!-- Form -->
+        <StackPanel Grid.Row="1">
+            <StackPanel Margin="0,0,0,16">
+                <TextBlock Style="{StaticResource FieldLabel}" Text="Cluster Name *"/>
+                <TextBox Style="{StaticResource DarkTextBox}" Text="{Binding Name, UpdateSourceTrigger=PropertyChanged}"
+                         Tag="My Kafka Cluster"/>
+            </StackPanel>
+            <StackPanel Margin="0,0,0,16">
+                <TextBlock Style="{StaticResource FieldLabel}" Text="Bootstrap Servers *"/>
+                <TextBox Style="{StaticResource DarkTextBox}" Text="{Binding BootstrapServers, UpdateSourceTrigger=PropertyChanged}"
+                         Tag="localhost:9092"/>
+                <TextBlock Text="Comma-separated list: host1:9092,host2:9092" Foreground="#4A5180" FontSize="11" Margin="0,4,0,0"/>
+            </StackPanel>
+            <StackPanel Margin="0,0,0,16">
+                <TextBlock Style="{StaticResource FieldLabel}" Text="Schema Registry URL (optional)"/>
+                <TextBox Style="{StaticResource DarkTextBox}" Text="{Binding SchemaRegistry, UpdateSourceTrigger=PropertyChanged}"
+                         Tag="http://localhost:8081"/>
+            </StackPanel>
+            <StackPanel Margin="0,0,0,16">
+                <TextBlock Style="{StaticResource FieldLabel}" Text="Kafka Connect URL (optional)"/>
+                <TextBox Style="{StaticResource DarkTextBox}" Text="{Binding KafkaConnect, UpdateSourceTrigger=PropertyChanged}"
+                         Tag="http://localhost:8083"/>
+            </StackPanel>
+            <StackPanel Margin="0,0,0,16" Orientation="Horizontal" VerticalAlignment="Center">
+                <CheckBox IsChecked="{Binding IsDefault}"
+                          Foreground="#E8EAF6" FontSize="13"
+                          VerticalContentAlignment="Center"
+                          Margin="0,0,10,0"/>
+                <StackPanel>
+                    <TextBlock Text="Set as default cluster" Foreground="#E8EAF6" FontSize="13"/>
+                    <TextBlock Text="This cluster will be pre-selected on startup." Foreground="#4A5180" FontSize="11" Margin="0,2,0,0"/>
+                </StackPanel>
+            </StackPanel>
+
+            <!-- Test connection status -->
+            <TextBlock Text="{Binding StatusMessage}" FontSize="13" Margin="0,4,0,0"
+                       Foreground="{Binding StatusMessage, Converter={x:Static local:StatusMessageColorConverter.Instance}}"/>
+        </StackPanel>
+
+        <!-- Buttons -->
+        <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right">
+            <Button Style="{StaticResource SecondaryButton}" Command="{Binding TestConnectionCommand}" Margin="0,0,8,0"
+                    IsEnabled="{Binding IsTesting, Converter={x:Static local:InverseBoolConverter.Instance}}">
+                <TextBlock>
+                    <TextBlock.Style>
+                        <Style TargetType="TextBlock">
+                            <Setter Property="Text" Value="Test Connection"/>
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding IsTesting}" Value="True">
+                                    <Setter Property="Text" Value="Testing..."/>
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </TextBlock.Style>
+                </TextBlock>
+            </Button>
+            <Button Style="{StaticResource PrimaryButton}" Command="{Binding SaveCommand}">
+                <TextBlock Text="{Binding Title, RelativeSource={RelativeSource AncestorType=Window}}"/>
+            </Button>
+        </StackPanel>
+    </Grid>
+</Window>
