@@ -116,6 +116,16 @@
         </Setter>
     </Style>
 
+    <!-- DatePicker Style (used for Seek Type = Timestamp) -->
+    <Style x:Key="DarkDatePicker" TargetType="DatePicker">
+        <Setter Property="Background" Value="{StaticResource SurfaceElevated}"/>
+        <Setter Property="Foreground" Value="{StaticResource TextPrimary}"/>
+        <Setter Property="BorderBrush" Value="{StaticResource Border}"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="Padding" Value="8,6"/>
+        <Setter Property="FontSize" Value="13"/>
+    </Style>
+
     <!-- Label Style -->
     <Style x:Key="FieldLabel" TargetType="TextBlock">
         <Setter Property="Foreground" Value="{StaticResource TextSecondary}"/>

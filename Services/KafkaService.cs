@@ -22,7 +22,7 @@ namespace KafkaUI.Services
         Task<List<KafkaConsumerGroup>> GetConsumerGroupsAsync(string bootstrapServers);
         Task<List<KafkaConsumerGroup>> GetConsumerGroupsForTopicAsync(string bootstrapServers, string topicName);
         Task<KafkaConsumerGroup> GetConsumerGroupDetailsAsync(string bootstrapServers, string groupId);
-        Task<List<KafkaMessage>> GetMessagesAsync(string bootstrapServers, string topicName, int partition, long offset, int count, CancellationToken ct = default);
+        Task<List<KafkaMessage>> GetMessagesAsync(string bootstrapServers, string topicName, int partition, long offset, int count, CancellationToken ct = default, DateTime? seekTimestamp = null);
         Task<TopicStatistics> AnalyzeTopicAsync(string bootstrapServers, string topicName, CancellationToken ct = default);
         Task ProduceMessageAsync(string bootstrapServers, string topicName, string? key, string value, Dictionary<string, string>? headers = null, int? partition = null);
         Task<ClusterStats> GetClusterStatsAsync(string bootstrapServers);
@@ -623,7 +623,7 @@ namespace KafkaUI.Services
             return stats;
         }
 
-        public async Task<List<KafkaMessage>> GetMessagesAsync(string bootstrapServers, string topicName, int partition, long offset, int count, CancellationToken ct = default)
+        public async Task<List<KafkaMessage>> GetMessagesAsync(string bootstrapServers, string topicName, int partition, long offset, int count, CancellationToken ct = default, DateTime? seekTimestamp = null)
         {
             var consumerConfig = new ConsumerConfig
             {
@@ -635,8 +635,47 @@ namespace KafkaUI.Services
 
             var messages = new List<KafkaMessage>();
             using var consumer = new ConsumerBuilder<string?, string?>(consumerConfig).Build();
-            var tp = new TopicPartitionOffset(topicName, partition, offset);
-            consumer.Assign(tp);
+
+            var admin = GetAdminClient(bootstrapServers);
+            var meta = admin.GetMetadata(topicName, TimeSpan.FromSeconds(5));
+            var topicMeta = meta.Topics.Find(t => t.Topic == topicName);
+            if (topicMeta == null || topicMeta.Partitions.Count == 0)
+                return messages;
+
+            // partition < 0 means "All items are selected" - target every partition of the
+            // topic instead of silently falling back to partition 0, otherwise messages that
+            // only live in other partitions (e.g. partition 1) never get consumed.
+            var targetPartitionIds = partition < 0
+                ? topicMeta.Partitions.Select(p => p.PartitionId).ToList()
+                : new List<int> { partition };
+
+            if (seekTimestamp.HasValue)
+            {
+                // Seek Type = Timestamp: resolve the earliest offset at/after the given
+                // timestamp for each targeted partition, then start consuming from there.
+                var epochMs = new DateTimeOffset(DateTime.SpecifyKind(seekTimestamp.Value, DateTimeKind.Local)).ToUnixTimeMilliseconds();
+                var searchTimes = targetPartitionIds
+                    .Select(p => new TopicPartitionTimestamp(topicName, p, new Timestamp(epochMs, TimestampType.CreateTime)))
+                    .ToList();
+
+                var resolved = consumer.OffsetsForTimes(searchTimes, TimeSpan.FromSeconds(10));
+                var assignments = resolved
+                    .Where(r => r.Offset.Value >= 0)
+                    .Select(r => new TopicPartitionOffset(r.TopicPartition, r.Offset))
+                    .ToList();
+
+                if (assignments.Count == 0)
+                    return messages;
+
+                consumer.Assign(assignments);
+            }
+            else
+            {
+                var assignments = targetPartitionIds
+                    .Select(p => new TopicPartitionOffset(topicName, p, offset))
+                    .ToList();
+                consumer.Assign(assignments);
+            }
 
             var deadline = DateTime.UtcNow.AddSeconds(10);
             while (messages.Count < count && DateTime.UtcNow < deadline && !ct.IsCancellationRequested)

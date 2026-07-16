@@ -330,86 +330,92 @@
                 <!-- Filter bar: Seek Type | Offset | Partitions | Key Serde | Value Serde | Clear all | Submit | Sort -->
                 <Border Grid.Row="0" Background="{StaticResource Background}"
                         Padding="24,12,24,8">
-                    <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="Auto"/>
-                            <ColumnDefinition Width="130"/>
-                            <ColumnDefinition Width="200"/>
-                            <ColumnDefinition Width="160"/>
-                            <ColumnDefinition Width="160"/>
-                            <ColumnDefinition Width="Auto"/>
-                            <ColumnDefinition Width="Auto"/>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="160"/>
-                        </Grid.ColumnDefinitions>
+                    <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="110"/>
+                                <ColumnDefinition Width="150"/>
+                                <ColumnDefinition Width="120"/>
+                                <ColumnDefinition Width="120"/>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="24"/>
+                                <ColumnDefinition Width="130"/>
+                            </Grid.ColumnDefinitions>
 
-                        <!-- Seek Type label + dropdown -->
-                        <StackPanel Grid.Column="0" Margin="0,0,8,0">
-                            <TextBlock Text="Seek Type" Foreground="{StaticResource TextSecondary}"
-                                       FontSize="11" Margin="0,0,0,4"/>
-                            <ComboBox ItemsSource="{Binding SeekTypes}"
-                                      SelectedItem="{Binding SeekType}"
-                                      Width="100"
-                                      Style="{StaticResource DarkComboBox}"/>
-                        </StackPanel>
+                            <!-- Seek Type label + dropdown -->
+                            <StackPanel Grid.Column="0" Margin="0,0,8,0">
+                                <TextBlock Text="Seek Type" Foreground="{StaticResource TextSecondary}"
+                                           FontSize="11" Margin="0,0,0,4"/>
+                                <ComboBox ItemsSource="{Binding SeekTypes}"
+                                          SelectedItem="{Binding SeekType}"
+                                          Width="100"
+                                          Style="{StaticResource DarkComboBox}"/>
+                            </StackPanel>
 
-                        <!-- Offset value -->
-                        <StackPanel Grid.Column="1" Margin="0,0,8,0">
-                            <TextBlock Text=" " FontSize="11" Margin="0,0,0,4"/>
-                            <TextBox Text="{Binding OffsetValue, UpdateSourceTrigger=PropertyChanged}"
-                                     Style="{StaticResource DarkTextBox}" Padding="8,5"/>
-                        </StackPanel>
+                            <!-- Offset value / Timestamp value (depends on Seek Type) -->
+                            <StackPanel Grid.Column="1" Margin="0,0,8,0">
+                                <TextBlock Text=" " FontSize="11" Margin="0,0,0,4"/>
+                                <TextBox Text="{Binding OffsetValue, UpdateSourceTrigger=PropertyChanged}"
+                                         Style="{StaticResource DarkTextBox}" Padding="8,5"
+                                         Visibility="{Binding IsOffsetSeek, Converter={x:Static local:BoolToVisibilityConverter.Instance}}"/>
+                                <DatePicker SelectedDate="{Binding TimestampValue}"
+                                            Style="{StaticResource DarkDatePicker}"
+                                            Visibility="{Binding IsTimestampSeek, Converter={x:Static local:BoolToVisibilityConverter.Instance}}"/>
+                            </StackPanel>
 
-                        <!-- Partitions -->
-                        <StackPanel Grid.Column="2" Margin="0,0,8,0">
-                            <TextBlock Text="Partitions" Foreground="{StaticResource TextSecondary}"
-                                       FontSize="11" Margin="0,0,0,4"/>
-                            <ComboBox ItemsSource="{Binding PartitionItems}"
-                                      SelectedItem="{Binding SelectedPartitionItem}"
-                                      Style="{StaticResource DarkComboBox}"/>
-                        </StackPanel>
+                            <!-- Partitions -->
+                            <StackPanel Grid.Column="2" Margin="0,0,8,0">
+                                <TextBlock Text="Partitions" Foreground="{StaticResource TextSecondary}"
+                                           FontSize="11" Margin="0,0,0,4"/>
+                                <ComboBox ItemsSource="{Binding PartitionItems}"
+                                          SelectedItem="{Binding SelectedPartitionItem}"
+                                          Style="{StaticResource DarkComboBox}"/>
+                            </StackPanel>
 
-                        <!-- Key Serde -->
-                        <StackPanel Grid.Column="3" Margin="0,0,8,0">
-                            <TextBlock Text="Key Serde" Foreground="{StaticResource TextSecondary}"
-                                       FontSize="11" Margin="0,0,0,4"/>
-                            <ComboBox ItemsSource="{Binding SerdeTypes}"
-                                      SelectedItem="{Binding KeySerde}"
-                                      Style="{StaticResource DarkComboBox}"/>
-                        </StackPanel>
+                            <!-- Key Serde -->
+                            <StackPanel Grid.Column="3" Margin="0,0,8,0">
+                                <TextBlock Text="Key Serde" Foreground="{StaticResource TextSecondary}"
+                                           FontSize="11" Margin="0,0,0,4"/>
+                                <ComboBox ItemsSource="{Binding SerdeTypes}"
+                                          SelectedItem="{Binding KeySerde}"
+                                          Style="{StaticResource DarkComboBox}"/>
+                            </StackPanel>
 
-                        <!-- Value Serde -->
-                        <StackPanel Grid.Column="4" Margin="0,0,12,0">
-                            <TextBlock Text="Value Serde" Foreground="{StaticResource TextSecondary}"
-                                       FontSize="11" Margin="0,0,0,4"/>
-                            <ComboBox ItemsSource="{Binding SerdeTypes}"
-                                      SelectedItem="{Binding ValueSerde}"
-                                      Style="{StaticResource DarkComboBox}"/>
-                        </StackPanel>
+                            <!-- Value Serde -->
+                            <StackPanel Grid.Column="4" Margin="0,0,12,0">
+                                <TextBlock Text="Value Serde" Foreground="{StaticResource TextSecondary}"
+                                           FontSize="11" Margin="0,0,0,4"/>
+                                <ComboBox ItemsSource="{Binding SerdeTypes}"
+                                          SelectedItem="{Binding ValueSerde}"
+                                          Style="{StaticResource DarkComboBox}"/>
+                            </StackPanel>
 
-                        <!-- Clear all -->
-                        <Button Grid.Column="5" Content="Clear all"
-                                Command="{Binding ClearMessagesCommand}"
-                                VerticalAlignment="Bottom" Margin="0,0,8,0"
-                                Background="Transparent" BorderThickness="0"
-                                Foreground="{StaticResource TextSecondary}"
-                                FontSize="12" Padding="0,5" Cursor="Hand"/>
+                            <!-- Clear all -->
+                            <Button Grid.Column="5" Content="Clear all"
+                                    Command="{Binding ClearMessagesCommand}"
+                                    VerticalAlignment="Bottom" Margin="0,0,8,0"
+                                    Background="Transparent" BorderThickness="0"
+                                    Foreground="{StaticResource TextSecondary}"
+                                    FontSize="12" Padding="0,5" Cursor="Hand"/>
 
-                        <!-- Submit -->
-                        <Button Grid.Column="6" Content="Submit"
-                                Command="{Binding LoadMessagesCommand}"
-                                VerticalAlignment="Bottom"
-                                Style="{StaticResource PrimaryButton}"
-                                Padding="20,5"/>
+                            <!-- Submit -->
+                            <Button Grid.Column="6" Content="Submit"
+                                    Command="{Binding LoadMessagesCommand}"
+                                    VerticalAlignment="Bottom"
+                                    Style="{StaticResource PrimaryButton}"
+                                    Padding="20,5"/>
 
-                        <!-- Sort order -->
-                        <StackPanel Grid.Column="8" HorizontalAlignment="Right">
-                            <TextBlock Text=" " FontSize="11" Margin="0,0,0,4"/>
-                            <ComboBox ItemsSource="{Binding SortOrders}"
-                                      SelectedItem="{Binding SortOrder}"
-                                      Style="{StaticResource DarkComboBox}"/>
-                        </StackPanel>
-                    </Grid>
+                            <!-- Sort order -->
+                            <StackPanel Grid.Column="8" Margin="0,0,0,0">
+                                <TextBlock Text=" " FontSize="11" Margin="0,0,0,4"/>
+                                <ComboBox ItemsSource="{Binding SortOrders}"
+                                          SelectedItem="{Binding SortOrder}"
+                                          Style="{StaticResource DarkComboBox}"/>
+                            </StackPanel>
+                        </Grid>
+                    </ScrollViewer>
                 </Border>
 
                 <!-- Search + Add Filters + Stats row -->

@@ -471,6 +471,7 @@ namespace KafkaUI.ViewModels
         // Filter state
         private string _seekType = "Offset";
         private string _offsetValue = "0";
+        private DateTime? _timestampValue;
         private string _keySerde = "String";
         private string _valueSerde = "String";
         private string _searchText = string.Empty;
@@ -508,12 +509,33 @@ namespace KafkaUI.ViewModels
             }
         }
 
-        public string SeekType   { get => _seekType;   set => SetField(ref _seekType, value); }
+        public string SeekType
+        {
+            get => _seekType;
+            set
+            {
+                SetField(ref _seekType, value);
+                OnPropertyChanged(nameof(IsOffsetSeek));
+                OnPropertyChanged(nameof(IsTimestampSeek));
+            }
+        }
         public string OffsetValue { get => _offsetValue; set => SetField(ref _offsetValue, value); }
+        public DateTime? TimestampValue { get => _timestampValue; set => SetField(ref _timestampValue, value); }
         public string KeySerde   { get => _keySerde;   set => SetField(ref _keySerde, value); }
         public string ValueSerde { get => _valueSerde; set => SetField(ref _valueSerde, value); }
-        public string SortOrder  { get => _sortOrder;  set => SetField(ref _sortOrder, value); }
+        public string SortOrder
+        {
+            get => _sortOrder;
+            set
+            {
+                if (SetField(ref _sortOrder, value))
+                    ApplyFilter();
+            }
+        }
         public bool   IsLoadingMessages { get => _isLoadingMessages; set => SetField(ref _isLoadingMessages, value); }
+
+        public bool IsOffsetSeek    => _seekType == "Offset";
+        public bool IsTimestampSeek => _seekType == "Timestamp";
 
         public string SearchText
         {
@@ -521,7 +543,9 @@ namespace KafkaUI.ViewModels
             set { SetField(ref _searchText, value); ApplyFilter(); }
         }
 
-        public IEnumerable<string> SeekTypes  => new[] { "Offset", "Timestamp", "Latest", "Earliest" };
+        // Matches the original kafka-ui Messages filter bar: only Offset and Timestamp are
+        // valid seek types. "Offset" shows a text input, "Timestamp" shows a date picker.
+        public IEnumerable<string> SeekTypes  => new[] { "Offset", "Timestamp" };
         public IEnumerable<string> SerdeTypes => new[] { "String", "JSON", "Avro", "Protobuf", "Long", "Int" };
         public IEnumerable<string> SortOrders => new[] { "Oldest First", "Newest First" };
 
@@ -723,13 +747,11 @@ namespace KafkaUI.ViewModels
             var sw = System.Diagnostics.Stopwatch.StartNew();
             try
             {
-                int partition = _selectedPartition < 0 ? 0 : _selectedPartition;
-                long offset   = long.TryParse(_offsetValue, out var o) ? o : 0;
+                long offset = long.TryParse(_offsetValue, out var o) ? o : 0;
+                DateTime? seekTimestamp = IsTimestampSeek ? _timestampValue : null;
                 var msgs = await _kafka.GetMessagesAsync(
-                    _cluster.BootstrapServers, _topicName, partition, offset, 100);
-
-                if (_sortOrder == "Newest First")
-                    msgs = msgs.OrderByDescending(m => m.Timestamp).ToList();
+                    _cluster.BootstrapServers, _topicName, _selectedPartition, offset, 100,
+                    seekTimestamp: seekTimestamp);
 
                 Messages.Clear();
                 foreach (var m in msgs) Messages.Add(m);
@@ -743,15 +765,27 @@ namespace KafkaUI.ViewModels
             finally { IsLoadingMessages = false; }
         }
 
+        // Rebuilds FilteredMessages (the DataGrid's actual ItemsSource) from Messages,
+        // applying both the search text filter and the current sort order. Messages
+        // itself is never mutated here, so this is safe to call any time the search
+        // text or the Sort Order dropdown (Oldest First / Newest First) changes -
+        // sorting takes effect immediately without needing to press Submit again.
         private void ApplyFilter()
         {
-            FilteredMessages.Clear();
             var q = _searchText.Trim();
-            foreach (var m in Messages)
-                if (string.IsNullOrEmpty(q) ||
+            IEnumerable<KafkaMessage> query = Messages;
+
+            if (!string.IsNullOrEmpty(q))
+                query = query.Where(m =>
                     (m.Key?.Contains(q, StringComparison.OrdinalIgnoreCase) ?? false) ||
-                    (m.Value?.Contains(q, StringComparison.OrdinalIgnoreCase) ?? false))
-                    FilteredMessages.Add(m);
+                    (m.Value?.Contains(q, StringComparison.OrdinalIgnoreCase) ?? false));
+
+            query = _sortOrder == "Newest First"
+                ? query.OrderByDescending(m => m.Timestamp)
+                : query.OrderBy(m => m.Timestamp);
+
+            FilteredMessages.Clear();
+            foreach (var m in query) FilteredMessages.Add(m);
         }
 
         private void NotifyStats()
